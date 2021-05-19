@@ -46,10 +46,14 @@ function mount(vnode, container, isSVG) {
     }
 }
 
-const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/
+const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
 function mountElement(vnode, container, isSVG) {
     isSVG = isSVG || vnode.flags & VNodeFlags.ELEMENT_SVG;
     const el = isSVG ? document.createElementNS('http://www.w3.org/2000/svg', vnode.tag) : document.createElement(vnode.tag);
+    if (vnode.flags & VNodeFlags.ELEMENT_SVG) {
+        el.setAttribute('xmlns','http://www.w3.org/2000/svg');
+        el.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+    }
     vnode.el = el;
     const data = vnode.data;
     if (data) {
@@ -64,18 +68,8 @@ function mountElement(vnode, container, isSVG) {
                     }
                     break;
                 case 'class':
-                    if (Array.isArray(data[key])) {
-                        for (let i = 0; i < data[key].length; i++) {
-                            if (typeof data[key][i] === 'string') {
-                                el.classList.add(data[key][i]);
-                            } else if (typeof data[key][i] === 'object') {
-                                for (let [key,value] of Object.entries(data[key][i])) {
-                                    if (value) {
-                                        el.classList.add(key);
-                                    }
-                                }
-                            }
-                        }
+                    if (isSVG) {
+                        el.setAttribute('class', data[key]);
                     } else {
                         el.className = data[key];
                     }
@@ -83,7 +77,7 @@ function mountElement(vnode, container, isSVG) {
                 default:
                     if (key[0] === 'o' && key[1] === 'n') {
                         // 事件
-                        el.addEventListener(key.slice(2), data[key])
+                        el.addEventListener(key.slice(2), data[key]);
                     }
                     if (domPropsRE.test(key)) {
                         // 当做 DOM Prop 处理
@@ -123,22 +117,22 @@ function mountComponent(vnode, container, isSVG) {
 
 function mountStatefulComponent(vnode, container, isSVG) {
     // 创建组件实例
-    const instance = new vnode.tag()
+    const instance = new vnode.tag();
     // 渲染VNode
-    instance.$vnode = instance.render()
+    instance.$vnode = instance.render();
     // 挂载
-    mount(instance.$vnode, container, isSVG)
+    mount(instance.$vnode, container, isSVG);
     // el 属性值 和 组件实例的 $el 属性都引用组件的根DOM元素
-    instance.$el = vnode.el = instance.$vnode.el
+    instance.$el = vnode.el = instance.$vnode.el;
 }
 
 function mountFunctionalComponent(vnode, container, isSVG) {
     // 获取 VNode
-    const $vnode = vnode.tag()
+    const $vnode = vnode.tag();
     // 挂载
-    mount($vnode, container, isSVG)
+    mount($vnode, container, isSVG);
     // el 元素引用该组件的根元素
-    vnode.el = $vnode.el
+    vnode.el = $vnode.el;
 }
 
 function mountText(vnode, container) {

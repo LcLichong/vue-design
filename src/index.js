@@ -35,25 +35,66 @@ import render from './render'
 // const statefulComponentVNode = h(MyStatefulComponent, null, h('div'))
 // console.log(statefulComponentVNode)
 
-// const elementVNode = h('svg', {
+const elementVNode = h('svg', {
+    class: ['class-a', [
+        'class-b',
+        'class-c',
+        'class-d'
+    ]],
+    style: {
+        height: '100px',
+        width: '100px',
+        background: 'red'
+    }
+}, h('circle',{
+    cx: '50',
+    cy: '50',
+    r: '40',
+    style: {
+        stroke: '#006600',
+        fill: '#00cc00'
+    }
+}))
+
+// const elementVNode = h('div', {
+//     class: {
+//         'class-b': true,
+//         'class-c': true
+//     },
 //     style: {
 //         height: '100px',
 //         width: '100px',
 //         background: 'red'
 //     }
-// }, h('circle',{
+// })
+
+// const elementVNode = h('div', {
+//     class: ['class-a', 'class-b'],
 //     style: {
-//         height: '50px',
-//         width: '50px',
-//         background: 'green'
+//         height: '100px',
+//         width: '100px',
+//         background: 'red'
 //     }
-// }))
+// })
 
 // const elementVNode = h('div', {
 //     class: ['class-a', {
 //         'class-b': true,
 //         'class-c': true
 //     }],
+//     style: {
+//         height: '100px',
+//         width: '100px',
+//         background: 'red'
+//     }
+// })
+
+// const elementVNode = h('div', {
+//     class: ['class-a', [
+//         'class-b',
+//         'class-c',
+//         'class-d'
+//     ]],
 //     style: {
 //         height: '100px',
 //         width: '100px',
@@ -138,23 +179,24 @@ import render from './render'
 // }
 // const compVnode = h(MyComponent)
 
-function MyFunctionalComponent() {
-    // 返回要渲染的内容描述，即 VNode
-    return h(
-        'div',
-        {
-            style: {
-                background: 'green'
-            }
-        },
-        [
-            h('span', null, '我是组件MyFunctionalComponent的标题1......'),
-            h('span', null, '我是组件MyFunctionalComponent的标题2......')
-        ]
-    )
-}
-const compVnode = h(MyFunctionalComponent)
-render(compVnode, document.querySelector('#app'))
+// function MyFunctionalComponent() {
+//     // 返回要渲染的内容描述，即 VNode
+//     return h(
+//         'div',
+//         {
+//             style: {
+//                 background: 'green'
+//             }
+//         },
+//         [
+//             h('span', null, '我是组件MyFunctionalComponent的标题1......'),
+//             h('span', null, '我是组件MyFunctionalComponent的标题2......')
+//         ]
+//     )
+// }
+// const compVnode = h(MyFunctionalComponent)
+// render(compVnode, document.querySelector('#app'))
 
+render(elementVNode, document.querySelector('#app'))
 
 

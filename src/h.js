@@ -11,7 +11,10 @@ function h(tag, data = null, children = null) {
     let flags = null;
     let childFlags = null;
     if (typeof tag === 'string') {
-        flags = tag === 'svg' ? VNodeFlags.ELEMENT_SVG : VNodeFlags.ElEMENT_HTML
+        flags = tag === 'svg' ? VNodeFlags.ELEMENT_SVG : VNodeFlags.ElEMENT_HTML;
+        if(data && data.class){
+            data.class = normalizeClass(data.class);
+        }
     } else if (tag === Fragment) {
         flags = VNodeFlags.FRAGMENT
     } else if (tag === Portal) {
@@ -62,6 +65,21 @@ function h(tag, data = null, children = null) {
     }
 }
 
+function createTextVNode(text) {
+    return {
+        _isVNode: true,
+        // flags 是 VNodeFlags.TEXT
+        flags: VNodeFlags.TEXT,
+        tag: null,
+        data: null,
+        // 纯文本类型的 VNode，其 children 属性存储的是与之相符的文本内容
+        children: text,
+        // 文本节点没有子节点
+        childFlags: ChildrenFlags.NO_CHILDREN,
+        el: null
+    }
+}
+
 function normalizeVNodes(children) {
     const newChildren = [];
     // 遍历 children
@@ -77,19 +95,33 @@ function normalizeVNodes(children) {
     return newChildren;
 }
 
-function createTextVNode(text) {
-    return {
-        _isVNode: true,
-        // flags 是 VNodeFlags.TEXT
-        flags: VNodeFlags.TEXT,
-        tag: null,
-        data: null,
-        // 纯文本类型的 VNode，其 children 属性存储的是与之相符的文本内容
-        children: text,
-        // 文本节点没有子节点
-        childFlags: ChildrenFlags.NO_CHILDREN,
-        el: null
+function normalizeClass(classValue) {
+    let res = '';
+    if (Array.isArray(classValue)) {
+        for (let value of classValue) {
+            if (typeof value === 'string') {
+                res = `${res} ${value}`;
+            }
+            else if (Array.isArray(value)) {
+                for (let v of value) {
+                    res = `${res} ${v}`;
+                }
+            } else {
+                for (let v in value) {
+                    if (v) {
+                        res = `${res} ${v}`;
+                    }
+                }
+            }
+        }
+    } else if (classValue != null && typeof classValue === 'object') {
+        for (let value in classValue) {
+            res = `${res} ${value}`;
+        }
+    } else {
+        res = `${classValue}`;
     }
+    return res.trim();
 }
 
 export {
