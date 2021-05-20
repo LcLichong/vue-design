@@ -62,7 +62,7 @@ function mountElement(vnode, container, isSVG) {
     if (data) {
         // 如果 VNodeData 存在，则遍历之
         for (let key in data) {
-            patchData(el,key,null,data[key],isSVG);
+            patchData(el, key, null, data[key], isSVG);
         }
     }
     // 拿到 children 和 childFlags
@@ -192,7 +192,7 @@ function patchElement(prevVNode, nextVNode, container) {
     // 如果新旧 VNode 描述的是不同的标签，则调用 replaceVNode 函数，使用新的 VNode 替换旧的 VNode
     if (prevVNode.tag !== nextVNode.tag) {
         replaceVNode(prevVNode, nextVNode, container);
-        return
+        return;
     }
 
     // 拿到 el 元素，注意这时要让 nextVNode.el 也引用该元素
@@ -207,9 +207,13 @@ function patchElement(prevVNode, nextVNode, container) {
             // 根据 key 拿到新旧 VNodeData 的值
             const prevValue = prevData[key];
             const nextValue = nextData[key];
-            patchData(el, key, prevValue, nextValue)
+            patchData(el, key, prevValue, nextValue);
         }
+    } else {
+        replaceVNode(prevVNode, nextVNode, container);
+        return;
     }
+    // 旧的存在，新的不存在时需要通过它
     if (prevData) {
         // 遍历旧的 VNodeData，将已经不存在于新的 VNodeData 中的数据移除
         for (let key in prevData) {
@@ -218,6 +222,33 @@ function patchElement(prevVNode, nextVNode, container) {
                 patchData(el, key, prevValue, null);
             }
         }
+    }
+    patchChildren(
+        prevVNode.childFlags,
+        nextVNode.childFlags,
+        prevVNode.children,
+        nextVNode.children,
+        el
+    )
+}
+
+function patchChildren(
+    prevChildFlags,
+    nextChildFlags,
+    prevChildren,
+    nextChildren,
+    container
+) {
+    switch(prevChildFlags) {
+        // 旧的 children 是单个子节点时，会执行该case语句
+        case ChildrenFlags.SINGLE_VNODE:
+            break;
+        // 旧的 children 没有子节点时，会执行该case语句
+        case ChildrenFlags.NO_CHILDREN:
+            break;
+        // 旧的 children 是多个子节点时，会执行该case语句
+        default:
+            break;
     }
 }
 

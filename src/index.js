@@ -112,6 +112,7 @@ import render from './render'
 // function handler() {
 //     alert('click me')
 // }
+//
 // const elementVNode = h('div', {
 //     style: {
 //         height: '100px',
@@ -200,22 +201,50 @@ import render from './render'
 
 
 // 旧的 VNode
-const prevVNode = h('div', {
-    style: {
-        width: '100px',
-        height: '100px',
-        backgroundColor: 'red'
-    }
-})
+// const prevVNode = h('div', {
+//     style: {
+//         width: '100px',
+//         height: '100px',
+//         backgroundColor: 'red'
+//     }
+// })
 
 // 新的 VNode
-const nextVNode = h('div', {
-    style: {
-        width: '100px',
-        height: '100px',
-        border: '1px solid green'
-    }
-})
+// const nextVNode = h('div', {
+//     style: {
+//         width: '100px',
+//         height: '100px',
+//         border: '1px solid green'
+//     }
+// })
+
+// const nextVNode = h('div',{
+//     class: '123'
+// })
+
+// function handler() {
+//     alert('click me')
+// }
+//
+// const prevVNode = h('div', {
+//     style: {
+//         height: '100px',
+//         width: '100px',
+//         background: 'red'
+//     },
+//     onclick: handler
+// })
+//
+// const nextVNode = h('div', {
+//     style: {
+//         height: '100px',
+//         width: '100px',
+//         background: 'blue'
+//     }
+// })
+
+const prevVNode = h('div', null, h('span'))
+const nextVNode = h('div')
 
 // 先后渲染新旧 VNode 到 #app
 render(prevVNode, document.getElementById('app'))
