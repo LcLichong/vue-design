@@ -35,26 +35,26 @@ import render from './render'
 // const statefulComponentVNode = h(MyStatefulComponent, null, h('div'))
 // console.log(statefulComponentVNode)
 
-const elementVNode = h('svg', {
-    class: ['class-a', [
-        'class-b',
-        'class-c',
-        'class-d'
-    ]],
-    style: {
-        height: '100px',
-        width: '100px',
-        background: 'red'
-    }
-}, h('circle',{
-    cx: '50',
-    cy: '50',
-    r: '40',
-    style: {
-        stroke: '#006600',
-        fill: '#00cc00'
-    }
-}))
+// const elementVNode = h('svg', {
+//     class: ['class-a', [
+//         'class-b',
+//         'class-c',
+//         'class-d'
+//     ]],
+//     style: {
+//         height: '100px',
+//         width: '100px',
+//         background: 'red'
+//     }
+// }, h('circle',{
+//     cx: '50',
+//     cy: '50',
+//     r: '40',
+//     style: {
+//         stroke: '#006600',
+//         fill: '#00cc00'
+//     }
+// }))
 
 // const elementVNode = h('div', {
 //     class: {
@@ -160,7 +160,6 @@ const elementVNode = h('svg', {
 //     ])
 // )
 
-
 // class MyComponent {
 //     render() {
 //         return h(
@@ -197,6 +196,29 @@ const elementVNode = h('svg', {
 // const compVnode = h(MyFunctionalComponent)
 // render(compVnode, document.querySelector('#app'))
 
-render(elementVNode, document.querySelector('#app'))
+// render(elementVNode, document.querySelector('#app'))
+
+
+// 旧的 VNode
+const prevVNode = h('div', {
+    style: {
+        width: '100px',
+        height: '100px',
+        backgroundColor: 'red'
+    }
+})
+
+// 新的 VNode
+const nextVNode = h('div', {
+    style: {
+        width: '100px',
+        height: '100px',
+        border: '1px solid green'
+    }
+})
+
+// 先后渲染新旧 VNode 到 #app
+render(prevVNode, document.getElementById('app'))
+render(nextVNode, document.getElementById('app'))
 
 

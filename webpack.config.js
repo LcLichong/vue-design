@@ -7,7 +7,7 @@ module.exports = {
     entry: {
         'static/index': './src/index.js'
     },
-    mode: "development",
+    mode: "production",
     output: {
         path: path.resolve(__dirname,'./dist'),
         filename: '[name].[chunkhash].js'
