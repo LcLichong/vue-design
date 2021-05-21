@@ -30,9 +30,10 @@ module.exports = {
         }]
     },
     devServer: {
-        disableHostCheck: true,
+        hot: true,
         inline: true,
-        port: 8181
+        port: 8181,
+        clientLogLevel: 'none'
     },
     plugins: [
         new CleanWebpackPlugin(),

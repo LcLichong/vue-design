@@ -243,36 +243,57 @@ import render from './render'
 //     }
 // })
 
-// 旧的 VNode
-const prevVNode = h('div', {
-        style: {
-            height: '100px',
-            width: '100px',
-            background: 'red'
-        }
-    },
-    h('p', null, '123')
-)
+// // 旧的 VNode
+// const prevVNode = h('div', {
+//         style: {
+//             height: '100px',
+//             width: '100px',
+//             background: 'red'
+//         }
+//     },
+//     [
+//         h('p', null, '123'),
+//         h('p', null, '456')
+//     ]
+// )
+// // 新的 VNode
+// const nextVNode = h('div', {
+//         style: {
+//             height: '100px',
+//             width: '100px',
+//             background: 'green'
+//         }
+//     },
+//     [
+//         h('p', null, '123'),
+//         h('p', null, '777'),
+//         h('p', null, '9090')
+//     ]
+// )
+//
 
-// 新的 VNode
-const nextVNode = h('div', {
-        style: {
-            height: '100px',
-            width: '100px',
-            background: 'green'
-        }
-    },
+// 创建一个文本节点
+// const prevVNode = h('p', null, '旧文本');
+// const nextVNode = h('p', null, '新文本');
+
+
+const prevVNode = h(Fragment, null,
     [
-        h('p', null, '123'),
-        h('p', null, '456'),
+        h('p', null, '旧片段子节点1'),
+        h('p', null, '旧片段子节点2')
+    ]
+)
+const nextVNode = h(Fragment, null,
+    [
+        h('p', null, '新片段子节点1'),
+        h('p', null, '新片段子节点2')
     ]
 )
 
+console.log(434)
 render(prevVNode, document.getElementById('app'))
-
 // 2秒后更新
 setTimeout(() => {
     render(nextVNode, document.getElementById('app'))
+    console.log(nextVNode)
 }, 2000)
-
-

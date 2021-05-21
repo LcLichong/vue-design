@@ -178,6 +178,12 @@ function patch(prevVNode, nextVNode, container) {
     } else if (nextFlags & VNodeFlags.ELEMENT) {
         // 更新标签元素
         patchElement(prevVNode, nextVNode, container);
+    } else if (nextFlags & VNodeFlags.TEXT) {
+        // 更新文本元素
+        patchText(prevVNode, nextVNode);
+    } else if (nextFlags & VNodeFlags.FRAGMENT) {
+        // 更新fragment
+        patchFragment(prevVNode, nextVNode, container);
     }
 }
 
@@ -232,18 +238,8 @@ function patchElement(prevVNode, nextVNode, container) {
     )
 }
 
-function patchChildren(
-    prevChildFlags,
-    nextChildFlags,
-    prevChildren,
-    nextChildren,
-    container
-) {
-    console.log('prevChildFlags',prevChildFlags);
-    console.log('nextChildFlags',prevChildFlags);
-    console.log('prevChildren',prevChildren);
-    console.log('nextChildren',nextChildren);
-    switch(prevChildFlags) {
+function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildren, container) {
+    switch (prevChildFlags) {
         // 旧的 children 是单个子节点时，会执行该case语句
         case ChildrenFlags.SINGLE_VNODE:
             switch (nextChildFlags) {
@@ -260,7 +256,7 @@ function patchChildren(
                 default:
                     // container 删除旧的 prevChildren ，更新新的 nextChildren
                     container.removeChild(prevChildren.el);
-                    for(let vNode of nextChildren){
+                    for (let vNode of nextChildren) {
                         mount(vNode, container);
                     }
                     break;
@@ -271,12 +267,17 @@ function patchChildren(
             switch (nextChildFlags) {
                 // 新的 children 是单个子节点时，会执行该case语句
                 case ChildrenFlags.SINGLE_VNODE:
+                    mount(nextChildren, container);
                     break;
                 // 新的 children 没有子节点时，会执行该case语句
                 case ChildrenFlags.NO_CHILDREN:
+                    // 什么都不做
                     break;
                 // 新的 children 是多个子节点时，会执行该case语句
                 default:
+                    for (let vNode of nextChildren) {
+                        mount(vNode, container);
+                    }
                     break;
             }
             break;
@@ -285,15 +286,60 @@ function patchChildren(
             switch (nextChildFlags) {
                 // 新的 children 是单个子节点时，会执行该case语句
                 case ChildrenFlags.SINGLE_VNODE:
+                    for (let vNode of prevChildren) {
+                        container.removeChild(vNode.el);
+                    }
+                    mount(nextChildren, container);
                     break;
                 // 新的 children 没有子节点时，会执行该case语句
                 case ChildrenFlags.NO_CHILDREN:
+                    for (let vNode of prevChildren) {
+                        container.removeChild(vNode.el);
+                    }
                     break;
                 // 新的 children 是多个子节点时，会执行该case语句
                 default:
+                    // 遍历旧的子节点，将其全部移除
+                    for (let vNode of prevChildren) {
+                        container.removeChild(vNode.el);
+                    }
+                    // 遍历新的子节点，将其全部添加
+                    for (let vNode of nextChildren) {
+                        mount(vNode, container);
+                    }
                     break;
             }
             break;
     }
 }
 
+function patchText(prevVNode, nextVNode) {
+    const el = (nextVNode.el = prevVNode.el);
+    if (nextVNode.children !== prevVNode.children) {
+        el.nodeValue = nextVNode.children;
+    }
+}
+
+function patchFragment(prevVNode, nextVNode, container) {
+    patchChildren(
+        prevVNode.childFlags,
+        nextVNode.childFlags,
+        prevVNode.children,
+        nextVNode.children,
+        container
+    )
+
+    switch (nextVNode.childFlags) {
+        case ChildrenFlags.SINGLE_VNODE:
+            nextVNode.el = nextVNode.children.el;
+            break;
+        case ChildrenFlags.NO_CHILDREN:
+            const placeholder = createTextVNode('');
+            mountText(placeholder, container);
+            nextVNode.el = placeholder.el;
+            break;
+        default:
+            nextVNode.el = nextVNode.children[0].el;
+            break;
+    }
+}
