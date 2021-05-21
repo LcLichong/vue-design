@@ -239,15 +239,60 @@ function patchChildren(
     nextChildren,
     container
 ) {
+    console.log('prevChildFlags',prevChildFlags);
+    console.log('nextChildFlags',prevChildFlags);
+    console.log('prevChildren',prevChildren);
+    console.log('nextChildren',nextChildren);
     switch(prevChildFlags) {
         // 旧的 children 是单个子节点时，会执行该case语句
         case ChildrenFlags.SINGLE_VNODE:
+            switch (nextChildFlags) {
+                // 新的 children 是单个子节点时，会执行该case语句
+                case ChildrenFlags.SINGLE_VNODE:
+                    // 此时 prevChildren 和 nextChildren 都是 VNode 对象
+                    patch(prevChildren, nextChildren, container);
+                    break;
+                // 新的 children 没有子节点时，会执行该case语句
+                case ChildrenFlags.NO_CHILDREN:
+                    container.removeChild(prevChildren.el);
+                    break;
+                // 新的 children 是多个子节点时，会执行该case语句
+                default:
+                    // container 删除旧的 prevChildren ，更新新的 nextChildren
+                    container.removeChild(prevChildren.el);
+                    for(let vNode of nextChildren){
+                        mount(vNode, container);
+                    }
+                    break;
+            }
             break;
         // 旧的 children 没有子节点时，会执行该case语句
         case ChildrenFlags.NO_CHILDREN:
+            switch (nextChildFlags) {
+                // 新的 children 是单个子节点时，会执行该case语句
+                case ChildrenFlags.SINGLE_VNODE:
+                    break;
+                // 新的 children 没有子节点时，会执行该case语句
+                case ChildrenFlags.NO_CHILDREN:
+                    break;
+                // 新的 children 是多个子节点时，会执行该case语句
+                default:
+                    break;
+            }
             break;
         // 旧的 children 是多个子节点时，会执行该case语句
         default:
+            switch (nextChildFlags) {
+                // 新的 children 是单个子节点时，会执行该case语句
+                case ChildrenFlags.SINGLE_VNODE:
+                    break;
+                // 新的 children 没有子节点时，会执行该case语句
+                case ChildrenFlags.NO_CHILDREN:
+                    break;
+                // 新的 children 是多个子节点时，会执行该case语句
+                default:
+                    break;
+            }
             break;
     }
 }

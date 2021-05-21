@@ -243,11 +243,36 @@ import render from './render'
 //     }
 // })
 
-const prevVNode = h('div', null, h('span'))
-const nextVNode = h('div')
+// 旧的 VNode
+const prevVNode = h('div', {
+        style: {
+            height: '100px',
+            width: '100px',
+            background: 'red'
+        }
+    },
+    h('p', null, '123')
+)
 
-// 先后渲染新旧 VNode 到 #app
+// 新的 VNode
+const nextVNode = h('div', {
+        style: {
+            height: '100px',
+            width: '100px',
+            background: 'green'
+        }
+    },
+    [
+        h('p', null, '123'),
+        h('p', null, '456'),
+    ]
+)
+
 render(prevVNode, document.getElementById('app'))
-render(nextVNode, document.getElementById('app'))
+
+// 2秒后更新
+setTimeout(() => {
+    render(nextVNode, document.getElementById('app'))
+}, 2000)
 
 
