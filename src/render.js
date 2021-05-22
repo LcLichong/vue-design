@@ -160,7 +160,7 @@ function mountPortal(vnode, container, isSVG) {
     // 占位的空文本节点
     const placeholder = createTextVNode('');
     // 将该节点挂载到 container 中
-    mountText(placeholder, container, null);
+    mountText(placeholder, container);
     // el 属性引用该节点
     vnode.el = placeholder.el;
 }
@@ -184,6 +184,11 @@ function patch(prevVNode, nextVNode, container) {
     } else if (nextFlags & VNodeFlags.FRAGMENT) {
         // 更新fragment
         patchFragment(prevVNode, nextVNode, container);
+    } else if (nextFlags & VNodeFlags.PORTAL) {
+        // 更新Portal
+        console.log(prevVNode);
+        console.log(nextVNode);
+        patchPortal(prevVNode, nextVNode);
     }
 }
 
@@ -215,10 +220,11 @@ function patchElement(prevVNode, nextVNode, container) {
             const nextValue = nextData[key];
             patchData(el, key, prevValue, nextValue);
         }
-    } else {
-        replaceVNode(prevVNode, nextVNode, container);
-        return;
     }
+    // else {
+    //     replaceVNode(prevVNode, nextVNode, container);
+    //     return;
+    // }
     // 旧的存在，新的不存在时需要通过它
     if (prevData) {
         // 遍历旧的 VNodeData，将已经不存在于新的 VNodeData 中的数据移除
@@ -239,6 +245,8 @@ function patchElement(prevVNode, nextVNode, container) {
 }
 
 function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildren, container) {
+    console.log(prevChildFlags)
+    console.log(nextChildFlags)
     switch (prevChildFlags) {
         // 旧的 children 是单个子节点时，会执行该case语句
         case ChildrenFlags.SINGLE_VNODE:
@@ -255,6 +263,8 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                 // 新的 children 是多个子节点时，会执行该case语句
                 default:
                     // container 删除旧的 prevChildren ，更新新的 nextChildren
+                    console.log('go')
+                    console.log('container', container)
                     container.removeChild(prevChildren.el);
                     for (let vNode of nextChildren) {
                         mount(vNode, container);
@@ -341,5 +351,47 @@ function patchFragment(prevVNode, nextVNode, container) {
         default:
             nextVNode.el = nextVNode.children[0].el;
             break;
+    }
+}
+
+function patchPortal(prevVNode, nextVNode) {
+    console.log(prevVNode.childFlags);
+    console.log(nextVNode.childFlags);
+    patchChildren(
+        prevVNode.childFlags,
+        nextVNode.childFlags,
+        prevVNode.children,
+        nextVNode.children,
+        prevVNode.tag // 注意容器元素是旧的 container
+    )
+
+    nextVNode.el = prevVNode.el;
+
+    // 如果新旧容器不同，才需要搬运
+    if (nextVNode.tag !== prevVNode.tag) {
+        const container = typeof nextVNode.tag === 'string' ? document.querySelector(nextVNode.tag) : nextVNode.tag;
+        console.log(prevVNode.children.el);
+        console.log(nextVNode.children.el);
+        switch (nextVNode.childFlags) {
+            case ChildrenFlags.SINGLE_VNODE:
+                /*
+                 * 这里利用了 appendChild 的特性，如果 appendChild 要添加的子节点已经存在于文档树，它将从文档树中删除，然后重新插入它的新位置
+                 * 而在 patchText 函数里通过 const el = (nextVNode.el = prevVNode.el)
+                 * 让 nextVNode.children.el 等于 prevVNode.children.el
+                 * 而 prevVNode.children.el 在第一次render的时候已经存在于文档树了
+                 * 所以 container.appendChild(nextVNode.children.el)
+                 * 根据 appendChild 的特性，删除旧的 prevVNode.children.el，添加新的 nextVNode.children.el 到 container
+                 */
+                container.appendChild(nextVNode.children.el);
+                break;
+            case ChildrenFlags.NO_CHILDREN:
+                // nothing to do
+                break;
+            case ChildrenFlags.KEYED_VNODES:
+                for (let vNode of nextVNode.children) {
+                    container.appendChild(vNode.el);
+                }
+                break;
+        }
     }
 }

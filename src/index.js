@@ -277,23 +277,27 @@ import render from './render'
 // const nextVNode = h('p', null, '新文本');
 
 
-const prevVNode = h(Fragment, null,
-    [
-        h('p', null, '旧片段子节点1'),
-        h('p', null, '旧片段子节点2')
-    ]
-)
-const nextVNode = h(Fragment, null,
-    [
-        h('p', null, '新片段子节点1'),
-        h('p', null, '新片段子节点2')
-    ]
-)
+// const prevVNode = h(Fragment, null,
+//     [
+//         h('p', null, '旧片段子节点1'),
+//         h('p', null, '旧片段子节点2')
+//     ]
+// )
+// const nextVNode = h(Fragment, null,
+//     [
+//         h('p', null, '新片段子节点1'),
+//         h('p', null, '新片段子节点2')
+//     ]
+// )
 
-console.log(434)
+const prevVNode = h(Portal, { target: '#box1' },h('p', null, '旧片段子节点1'))
+const nextVNode = h(Portal, { target: '#box2' },h('p', null, [
+    h('p',null ,'123'),
+    h('p',null ,'456'),
+]))
+
 render(prevVNode, document.getElementById('app'))
 // 2秒后更新
 setTimeout(() => {
     render(nextVNode, document.getElementById('app'))
-    console.log(nextVNode)
 }, 2000)

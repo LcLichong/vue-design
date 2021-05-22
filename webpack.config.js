@@ -4,10 +4,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const {CleanWebpackPlugin} = require('clean-webpack-plugin')
 
 module.exports = {
+    mode: 'development',
+    devtool: 'eval-source-map',
     entry: {
         'static/index': './src/index.js'
     },
-    mode: "production",
     output: {
         path: path.resolve(__dirname,'./dist'),
         filename: '[name].[chunkhash].js'
