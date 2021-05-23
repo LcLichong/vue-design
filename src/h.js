@@ -1,6 +1,10 @@
-/**
- * Created by lc on 2021/5/16.
+/*
+ * @Author: LcLichong 
+ * @Date: 2021-05-23 13:25:29 
+ * @Last Modified by:   LcLichong 
+ * @Last Modified time: 2021-05-23 13:25:29 
  */
+
 
 import {VNodeFlags, ChildrenFlags} from './flags'
 

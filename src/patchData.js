@@ -1,5 +1,8 @@
-/**
- * Created by lc on 2021/5/20.
+/*
+ * @Author: LcLichong 
+ * @Date: 2021-05-23 13:25:43 
+ * @Last Modified by:   LcLichong 
+ * @Last Modified time: 2021-05-23 13:25:43 
  */
 
 import typeOf from './utility'
