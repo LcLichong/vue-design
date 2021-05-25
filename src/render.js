@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 01:41:26 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-25 10:42:59
+ * @Last Modified time: 2021-05-25 19:47:24
  */
 
 import { VNodeFlags, ChildrenFlags } from './flags'
@@ -107,8 +107,6 @@ function mountStatefulComponent(vnode, container, isSVG) {
             // 2.重新渲染新的 VNode
             const nextVNode = (instance.$vode = instance.render());
             // 3.patch 更新
-            console.log('prevVNode', prevVNode);
-            console.log('nextVNode', nextVNode);
             patch(prevVNode, nextVNode, prevVNode.el.parentNode);
             // 4.更新 vnode.el 和 $el
             instance.$el = vnode.el = instance.$vnode.el;
@@ -147,8 +145,6 @@ function mountFunctionalComponent(vnode, container, isSVG) {
                 // nextTree 是组件产出的新的 VNode
                 const nextTree = (nextVNode.children = nextVNode.tag(props));
                 // 调用 patch 函数更新
-                console.log(prevTree);
-                console.log(nextTree);
                 patch(prevTree, nextTree, vnode.handle.container);
             } else {
                 // 获取 props
@@ -368,21 +364,48 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                 default:
                     // diff 新旧子节点都是多个的情况
                     // 获取公共长度，取新旧 children 长度较小的那一个
-                    const prevLen = prevChildren.length;
-                    const nextLen = nextChildren.length;
-                    const commonLength = prevLen > nextLen ? nextLen : prevLen;
-                    for (let i = 0; i < commonLength; i++) {
-                        patch(prevChildren[i], nextChildren[i], container);
-                    }
-                    if (nextLen > prevLen) {
-                        // 如果 nextLen > prevLen，讲多出来的元素挂载
-                        for (let i = commonLength; i < nextLen; i++) {
-                            mount(nextChildren[i], container);
-                        }
-                    } else if (prevLen > nextLen) {
-                        // 如果 prevLen > nextLen，讲多出来的元素删除
-                        for (let i = commonLength; i < prevLen; i++) {
-                            container.removeChild(prevChildren[i].el);
+                    // const prevLen = prevChildren.length;
+                    // const nextLen = nextChildren.length;
+                    // const commonLength = prevLen > nextLen ? nextLen : prevLen;
+                    // for (let i = 0; i < commonLength; i++) {
+                    //     patch(prevChildren[i], nextChildren[i], container);
+                    // }
+                    // if (nextLen > prevLen) {
+                    //     // 如果 nextLen > prevLen，讲多出来的元素挂载
+                    //     for (let i = commonLength; i < nextLen; i++) {
+                    //         mount(nextChildren[i], container);
+                    //     }
+                    // } else if (prevLen > nextLen) {
+                    //     // 如果 prevLen > nextLen，讲多出来的元素删除
+                    //     for (let i = commonLength; i < prevLen; i++) {
+                    //         container.removeChild(prevChildren[i].el);
+                    //     }
+                    // }
+
+                    // 用来存储寻找过程中遇到的最大索引值
+                    let lastIndex = 0;
+                    // 遍历新的 children
+                    for (let i = 0; i < nextChildren.length; i++) {
+                        const nextVNode = nextChildren[i];
+                        let j = 0;
+                        // 遍历旧的 children
+                        for (j; j < prevChildren.length; j++) {
+                            const prevVNode = prevChildren[j];
+                            // 如果找到了具有相同 key 值的两个节点，则调用 patch 函数更新之
+                            if (prevVNode.key === nextVNode.key) {
+                                patch(prevVNode, nextVNode, container);
+                                if (j < lastIndex) {
+                                    // 需要移动
+                                    // refNode 是为了下面调用 insertBefore 函数准备的
+                                    const refNode = nextChildren[i - 1].el.nextSibling;
+                                    // 调用 insertBefore 函数移动 DOM
+                                    container.insertBefore(prevVNode.el, refNode);
+                                } else {
+                                    // 更新 lastIndex
+                                    lastIndex = j;
+                                }
+                                break; // 找到了就退出本次循环，继续下一次比对
+                            }
                         }
                     }
                     break;

@@ -1,8 +1,8 @@
 /*
  * @Author: LcLichong 
  * @Date: 2021-05-23 13:25:29 
- * @Last Modified by:   LcLichong 
- * @Last Modified time: 2021-05-23 13:25:29 
+ * @Last Modified by: LcLichong
+ * @Last Modified time: 2021-05-25 14:10:00
  */
 
 
@@ -63,6 +63,7 @@ function h(tag, data = null, children = null) {
         flags,
         tag,
         data,
+        key : data && data.key ? data.key : null,
         children,
         childFlags,
         el: null

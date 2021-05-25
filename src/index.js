@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 13:25:39 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-25 11:06:03
+ * @Last Modified time: 2021-05-25 16:47:36
  */
 
 import { h, Fragment, Portal } from './h'
@@ -69,16 +69,36 @@ import render from './render'
 // const componentNode = h(ParentComponent);
 // render(componentNode, document.querySelector('#app'));
 
+// const prevNode = h('ul', null, [
+//     h('li', { key: 'a' }, 1),
+//     h('li', { key: 'b' }, 2),
+//     h('li', { key: 'c' }, 3)
+// ])
+
+// setTimeout(() => {
+//     const nextNode = h('ul', null, [
+//         h('li', { key: 'c' }, 3),
+//         h('li', { key: 'a' }, 1),
+//         h('li', { key: 'b' }, 2)
+//     ])
+//     render(nextNode, document.querySelector('#app'));
+// }, 2000)
+
+// render(prevNode, document.querySelector('#app'));
+
 const prevNode = h('ul', null, [
-    h('li', null, '1'),
-    h('li', null, '2')
+    h('li', { key: 'a' }, 1),
+    h('li', { key: 'b' }, 2),
+    h('li', { key: 'c' }, 4),
+    h('li', { key: 'd' }, 3)
 ])
 
 setTimeout(() => {
     const nextNode = h('ul', null, [
-        h('li', null, '4'),
-        h('li', null, '5'),
-        h('li', null, '6')
+        h('li', { key: 'c' }, 4),
+        h('li', { key: 'a' }, 1),
+        h('li', { key: 'd' }, 3),
+        h('li', { key: 'b' }, 2)
     ])
     render(nextNode, document.querySelector('#app'));
 }, 2000)
