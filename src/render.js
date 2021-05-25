@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 01:41:26 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-23 22:47:23
+ * @Last Modified time: 2021-05-25 10:42:59
  */
 
 import { VNodeFlags, ChildrenFlags } from './flags'
@@ -107,8 +107,8 @@ function mountStatefulComponent(vnode, container, isSVG) {
             // 2.重新渲染新的 VNode
             const nextVNode = (instance.$vode = instance.render());
             // 3.patch 更新
-            console.log('prevVNode',prevVNode);
-            console.log('nextVNode',nextVNode);
+            console.log('prevVNode', prevVNode);
+            console.log('nextVNode', nextVNode);
             patch(prevVNode, nextVNode, prevVNode.el.parentNode);
             // 4.更新 vnode.el 和 $el
             instance.$el = vnode.el = instance.$vnode.el;
@@ -366,13 +366,24 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                     break;
                 // 新的 children 是多个子节点时，会执行该case语句
                 default:
-                    // 遍历旧的子节点，将其全部移除
-                    for (let vNode of prevChildren) {
-                        container.removeChild(vNode.el);
+                    // diff 新旧子节点都是多个的情况
+                    // 获取公共长度，取新旧 children 长度较小的那一个
+                    const prevLen = prevChildren.length;
+                    const nextLen = nextChildren.length;
+                    const commonLength = prevLen > nextLen ? nextLen : prevLen;
+                    for (let i = 0; i < commonLength; i++) {
+                        patch(prevChildren[i], nextChildren[i], container);
                     }
-                    // 遍历新的子节点，将其全部添加
-                    for (let vNode of nextChildren) {
-                        mount(vNode, container);
+                    if (nextLen > prevLen) {
+                        // 如果 nextLen > prevLen，讲多出来的元素挂载
+                        for (let i = commonLength; i < nextLen; i++) {
+                            mount(nextChildren[i], container);
+                        }
+                    } else if (prevLen > nextLen) {
+                        // 如果 prevLen > nextLen，讲多出来的元素删除
+                        for (let i = commonLength; i < prevLen; i++) {
+                            container.removeChild(prevChildren[i].el);
+                        }
                     }
                     break;
             }
