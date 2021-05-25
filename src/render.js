@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 01:41:26 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-25 19:47:24
+ * @Last Modified time: 2021-05-25 22:26:49
  */
 
 import { VNodeFlags, ChildrenFlags } from './flags'
@@ -32,11 +32,11 @@ export default function render(vnode, container) {
     }
 }
 
-function mount(vnode, container, isSVG) {
+function mount(vnode, container, isSVG, refNode) {
     const { flags } = vnode;
     if (flags & VNodeFlags.ELEMENT) {
         // 挂载普通标签
-        mountElement(vnode, container, isSVG);
+        mountElement(vnode, container, isSVG, refNode);
     } else if (flags & VNodeFlags.COMPONENT) {
         // 挂载组件
         mountComponent(vnode, container, isSVG);
@@ -53,7 +53,7 @@ function mount(vnode, container, isSVG) {
 }
 
 
-function mountElement(vnode, container, isSVG) {
+function mountElement(vnode, container, isSVG, refNode) {
     isSVG = isSVG || vnode.flags & VNodeFlags.ELEMENT_SVG;
     const el = isSVG ? document.createElementNS('http://www.w3.org/2000/svg', vnode.tag) : document.createElement(vnode.tag);
     if (vnode.flags & VNodeFlags.ELEMENT_SVG) {
@@ -83,7 +83,8 @@ function mountElement(vnode, container, isSVG) {
             }
         }
     }
-    container.appendChild(el);
+    // container.appendChild(el);
+    refNode ? container.insertBefore(el, refNode) : container.appendChild(el);
 }
 
 function mountComponent(vnode, container, isSVG) {
@@ -363,36 +364,19 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                 // 新的 children 是多个子节点时，会执行该case语句
                 default:
                     // diff 新旧子节点都是多个的情况
-                    // 获取公共长度，取新旧 children 长度较小的那一个
-                    // const prevLen = prevChildren.length;
-                    // const nextLen = nextChildren.length;
-                    // const commonLength = prevLen > nextLen ? nextLen : prevLen;
-                    // for (let i = 0; i < commonLength; i++) {
-                    //     patch(prevChildren[i], nextChildren[i], container);
-                    // }
-                    // if (nextLen > prevLen) {
-                    //     // 如果 nextLen > prevLen，讲多出来的元素挂载
-                    //     for (let i = commonLength; i < nextLen; i++) {
-                    //         mount(nextChildren[i], container);
-                    //     }
-                    // } else if (prevLen > nextLen) {
-                    //     // 如果 prevLen > nextLen，讲多出来的元素删除
-                    //     for (let i = commonLength; i < prevLen; i++) {
-                    //         container.removeChild(prevChildren[i].el);
-                    //     }
-                    // }
-
                     // 用来存储寻找过程中遇到的最大索引值
                     let lastIndex = 0;
                     // 遍历新的 children
                     for (let i = 0; i < nextChildren.length; i++) {
                         const nextVNode = nextChildren[i];
                         let j = 0;
+                        let find = false;
                         // 遍历旧的 children
                         for (j; j < prevChildren.length; j++) {
                             const prevVNode = prevChildren[j];
                             // 如果找到了具有相同 key 值的两个节点，则调用 patch 函数更新之
                             if (prevVNode.key === nextVNode.key) {
+                                find = true;
                                 patch(prevVNode, nextVNode, container);
                                 if (j < lastIndex) {
                                     // 需要移动
@@ -406,6 +390,12 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                                 }
                                 break; // 找到了就退出本次循环，继续下一次比对
                             }
+                        }
+                        if (!find) {
+                            // 挂载新节点
+                            // 找到 refNode
+                            const refNode = (i - 1 < 0) ? prevChildren[0].el : nextChildren[i - 1].el.nextSibling;
+                            mount(nextVNode, container, false, refNode);
                         }
                     }
                     break;
