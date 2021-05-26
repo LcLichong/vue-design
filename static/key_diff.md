@@ -1,6 +1,8 @@
-# 新旧节点都是多个且有key情况下的diff流程图
+# React的diff算法
 
-![新旧节点都是多个且有key情况下的diff流程图](https://github.com/LcLichong/vue-design/blob/master/static/key_diff.svg)
+## 根据遍历旧 children 中找到最大索引值（lastIndex变量）。如果在遍历的过程中发现存在索引值比最大索引值小的节点，意味着该节点需要被移动
+
+![React的diff算法](https://github.com/LcLichong/vue-design/blob/master/static/key_diff.svg)
 
 ### 关键代码
 
@@ -33,7 +35,7 @@ render(prevNode, document.querySelector('#app'));
 function patchElement(prevVNode, nextVNode, container) {
     // 拿到 el 元素，注意这时要让 nextVNode.el 也引用该元素
     const el = (nextVNode.el = prevVNode.el);
-  	// ...
+    // ...
 }
 ```
 
@@ -61,11 +63,13 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                     for (let i = 0; i < nextChildren.length; i++) {
                         const nextVNode = nextChildren[i];
                         let j = 0;
+                        let find = false;
                         // 遍历旧的 children
                         for (j; j < prevChildren.length; j++) {
                             const prevVNode = prevChildren[j];
                             // 如果找到了具有相同 key 值的两个节点，则调用 patch 函数更新之
                             if (prevVNode.key === nextVNode.key) {
+                                find = true;
                                 patch(prevVNode, nextVNode, container);
                                 if (j < lastIndex) {
                                     // 需要移动
@@ -80,6 +84,23 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                                 break; // 找到了就退出本次循环，继续下一次比对
                             }
                         }
+                        if (!find) {
+                            // 挂载新节点
+                            // 找到 refNode
+                            const refNode = i - 1 < 0 ? prevChildren[0].el : nextChildren[i - 1].el.nextSibling;
+                            mount(nextVNode, container, false, refNode);
+                        }
+                    }
+                    // 移除已经不存在的节点
+                    // 遍历旧的节点
+                    for (let i = 0; i < prevChildren.length; i++) {
+                        const prevVnode = prevChildren[i];
+                        // 拿着旧 VNode 去新 children 中寻找相同的节点
+                        const has = nextChildren.find(nextVNode => nextVNode.key === prevVnode.key);
+                        if (!has) {
+                            // 如果没有找到相同的节点，则移除
+                            container.removeChild(prevVnode.el);
+                        }
                     }
                     break;
             }
@@ -87,4 +108,3 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
     }
 }
 ```
-
