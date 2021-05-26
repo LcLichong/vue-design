@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 01:41:26 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-25 22:26:49
+ * @Last Modified time: 2021-05-26 09:49:06
  */
 
 import { VNodeFlags, ChildrenFlags } from './flags'
@@ -394,8 +394,19 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                         if (!find) {
                             // 挂载新节点
                             // 找到 refNode
-                            const refNode = (i - 1 < 0) ? prevChildren[0].el : nextChildren[i - 1].el.nextSibling;
+                            const refNode = i - 1 < 0 ? prevChildren[0].el : nextChildren[i - 1].el.nextSibling;
                             mount(nextVNode, container, false, refNode);
+                        }
+                    }
+                    // 移除已经不存在的节点
+                    // 遍历旧的节点
+                    for (let i = 0; i < prevChildren.length; i++) {
+                        const prevVnode = prevChildren[i];
+                        // 拿着旧 VNode 去新 children 中寻找相同的节点
+                        const has = nextChildren.find(nextVNode => nextVNode.key === prevVnode.key);
+                        if (!has) {
+                            // 如果没有找到相同的节点，则移除
+                            container.removeChild(prevVnode.el);
                         }
                     }
                     break;
