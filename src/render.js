@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 01:41:26 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-26 09:49:06
+ * @Last Modified time: 2021-05-26 16:19:58
  */
 
 import { VNodeFlags, ChildrenFlags } from './flags'
@@ -363,52 +363,11 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                     break;
                 // 新的 children 是多个子节点时，会执行该case语句
                 default:
-                    // diff 新旧子节点都是多个的情况
-                    // 用来存储寻找过程中遇到的最大索引值
-                    let lastIndex = 0;
-                    // 遍历新的 children
-                    for (let i = 0; i < nextChildren.length; i++) {
-                        const nextVNode = nextChildren[i];
-                        let j = 0;
-                        let find = false;
-                        // 遍历旧的 children
-                        for (j; j < prevChildren.length; j++) {
-                            const prevVNode = prevChildren[j];
-                            // 如果找到了具有相同 key 值的两个节点，则调用 patch 函数更新之
-                            if (prevVNode.key === nextVNode.key) {
-                                find = true;
-                                patch(prevVNode, nextVNode, container);
-                                if (j < lastIndex) {
-                                    // 需要移动
-                                    // refNode 是为了下面调用 insertBefore 函数准备的
-                                    const refNode = nextChildren[i - 1].el.nextSibling;
-                                    // 调用 insertBefore 函数移动 DOM
-                                    container.insertBefore(prevVNode.el, refNode);
-                                } else {
-                                    // 更新 lastIndex
-                                    lastIndex = j;
-                                }
-                                break; // 找到了就退出本次循环，继续下一次比对
-                            }
-                        }
-                        if (!find) {
-                            // 挂载新节点
-                            // 找到 refNode
-                            const refNode = i - 1 < 0 ? prevChildren[0].el : nextChildren[i - 1].el.nextSibling;
-                            mount(nextVNode, container, false, refNode);
-                        }
-                    }
-                    // 移除已经不存在的节点
-                    // 遍历旧的节点
-                    for (let i = 0; i < prevChildren.length; i++) {
-                        const prevVnode = prevChildren[i];
-                        // 拿着旧 VNode 去新 children 中寻找相同的节点
-                        const has = nextChildren.find(nextVNode => nextVNode.key === prevVnode.key);
-                        if (!has) {
-                            // 如果没有找到相同的节点，则移除
-                            container.removeChild(prevVnode.el);
-                        }
-                    }
+                    // 根据lastindex，diff 新旧子节点都是多个的情况
+                    // patchByLastIndex(prevChildren, nextChildren, container);
+
+                    // 双端比较的diff
+                    patchByBothEnds(prevChildren, nextChildren, container);
                     break;
             }
             break;
@@ -506,5 +465,140 @@ function patchComponent(prevVNode, nextVNode, container) {
         handle.container = container;
         // 调用 update 函数完成更新
         handle.update();
+    }
+}
+
+function patchByLastIndex(prevChildren, nextChildren, container) {
+    // 根据lastindex，diff 新旧子节点都是多个的情况
+    // lastIndex 用来存储寻找过程中遇到的最大索引值
+    let lastIndex = 0;
+    // 遍历新的 children
+    for (let i = 0; i < nextChildren.length; i++) {
+        const nextVNode = nextChildren[i];
+        let j = 0;
+        let find = false;
+        // 遍历旧的 children
+        for (j; j < prevChildren.length; j++) {
+            const prevVNode = prevChildren[j];
+            // 如果找到了具有相同 key 值的两个节点，则调用 patch 函数更新之
+            if (prevVNode.key === nextVNode.key) {
+                find = true;
+                patch(prevVNode, nextVNode, container);
+                if (j < lastIndex) {
+                    // 需要移动
+                    // refNode 是为了下面调用 insertBefore 函数准备的
+                    const refNode = nextChildren[i - 1].el.nextSibling;
+                    // 调用 insertBefore 函数移动 DOM
+                    container.insertBefore(prevVNode.el, refNode);
+                } else {
+                    // 更新 lastIndex
+                    lastIndex = j;
+                }
+                break; // 找到了就退出本次循环，继续下一次比对
+            }
+        }
+        if (!find) {
+            // 挂载新节点
+            // 找到 refNode
+            const refNode = i - 1 < 0 ? prevChildren[0].el : nextChildren[i - 1].el.nextSibling;
+            mount(nextVNode, container, false, refNode);
+        }
+    }
+    // 移除已经不存在的节点
+    // 遍历旧的节点
+    for (let i = 0; i < prevChildren.length; i++) {
+        const prevVnode = prevChildren[i];
+        // 拿着旧 VNode 去新 children 中寻找相同的节点
+        const has = nextChildren.find(nextVNode => nextVNode.key === prevVnode.key);
+        if (!has) {
+            // 如果没有找到相同的节点，则移除
+            container.removeChild(prevVnode.el);
+        }
+    }
+}
+
+function patchByBothEnds(prevChildren, nextChildren, container) {
+    // 双端比较的diff
+    // 旧 children 的两个端点的位置索引
+    let oldStartIdx = 0;
+    let oldEndIdx = prevChildren.length - 1;
+    // 新 children 的两个端点的位置索引 
+    let newStartIdx = 0;
+    let newEndIdx = nextChildren.length - 1;
+
+    let oldStartVNode = prevChildren[oldStartIdx];
+    let oldEndVNode = prevChildren[oldEndIdx];
+    let newStartVNode = nextChildren[newStartIdx];
+    let newEndVNode = nextChildren[newEndIdx];
+
+    while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+        if (!oldStartVNode) {
+            oldStartVNode = prevChildren[++oldStartIdx];
+        } else if (!oldEndVNode) {
+            oldEndVNode = prevChildren[--oldEndVNode];
+        } else if (oldStartVNode.key === newStartVNode.key) {
+            // 步骤一：oldStartVNode 和 newStartVNode 比对
+            // 调用 patch 函数更新
+            patch(oldStartVNode, newStartVNode, container);
+            // 更新索引，指向下一个位置
+            oldStartVNode = prevChildren[++oldStartIdx];
+            newStartVNode = nextChildren[++newStartIdx];
+        } else if (oldEndVNode.key === newEndVNode.key) {
+            // 步骤二：oldEndVNode 和 newEndVNode 比对
+            // 先调用 patch 函数完成更新
+            patch(oldEndVNode, newEndVNode, container);
+            // 更新索引，指向下一个位置
+            oldEndVNode = prevChildren[--oldEndIdx];
+            newEndVNode = nextChildren[--newEndIdx];
+        } else if (oldStartVNode.key === newEndVNode.key) {
+            // 步骤三：oldStartVNode 和 newEndVNode 比对
+            // 先调用 patch 函数完成更新
+            patch(oldStartVNode, newEndVNode, container);
+            // 将 oldStartVNode.el 移动到 oldEndVNode.el 的后面，也就是 oldEndVNode.el.nextSibling 的前面
+            container.insertBefore(oldStartVNode.el, oldEndVNode.el.nextSibling);
+            // 更新索引，指向下一个位置
+            oldStartVNode = prevChildren[++oldStartIdx];
+            newEndVNode = nextChildren[--newEndIdx];
+        } else if (oldEndVNode.key === newStartVNode.key) {
+            // 步骤四：oldEndVNode 和 newStartVNode 比对
+            // 先调用 patch 函数完成更新
+            patch(oldEndVNode, newStartVNode, container);
+            // 更新完成后，将容器中最后一个子节点移动到最前面，使其成为第一个子节点
+            container.insertBefore(oldEndVNode.el, oldStartVNode.el);
+            // 更新索引，指向下一个位置
+            oldEndVNode = prevChildren[--oldEndIdx];
+            newStartVNode = nextChildren[++newStartIdx];
+        } else {
+            // 遍历旧 children，试图寻找与 newStartVNode 拥有相同 key 值的元素
+            const idxInOld = prevChildren.findIndex(
+                node => node.key === newStartVNode.key
+            )
+            if (idxInOld >= 0) {
+                // vnodeToMove 就是在旧 children 中找到的节点，该节点所对应的真实 DOM 应该被移动到最前面
+                const vnodeToMove = prevChildren[idxInOld];
+                // 先调用 patch 函数完成更新
+                patch(vnodeToMove, newStartVNode, container);
+                // 把 vnodeToMove.el 移动到最前面，即 oldStartVNode.el 的前面
+                container.insertBefore(vnodeToMove.el, oldStartVNode.el);
+                // 由于旧 children 中该位置的节点所对应的真实 DOM 已经被移动，所以将其设置为 undefined
+                prevChildren[idxInOld] = undefined;
+            } else {
+                // 使用 mount 函数挂载新节点
+                mount(newStartVNode, container, false, oldStartVNode.el);
+            }
+            // 将 newStartIdx 下移一位
+            newStartVNode = nextChildren[++newStartIdx]
+        }
+    }
+    if (oldEndIdx < oldStartIdx) {
+        // 添加新节点
+        for (let i = newStartIdx; i <= newEndIdx; i++) {
+            mount(nextChildren[i], container, false, oldStartVNode.el);
+        }
+    } else if (newEndIdx < newStartIdx) {
+        // 移除节点
+        for (let i = oldStartIdx; i <= oldEndIdx; i++) {
+            container.removeChild(prevChildren[i].el);
+        }
     }
 }

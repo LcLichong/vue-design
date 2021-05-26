@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 13:25:39 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-26 09:44:19
+ * @Last Modified time: 2021-05-26 16:20:44
  */
 
 import { h, Fragment, Portal } from './h'
@@ -27,16 +27,19 @@ import render from './render'
 //     render(nextNode, document.querySelector('#app'));
 // }, 2000)
 
+
 const prevNode = h('ul', null, [
     h('li', { key: 'a' }, 'li-a'),
     h('li', { key: 'b' }, 'li-b'),
-    h('li', { key: 'c' }, 'li-c')
+    h('li', { key: 'c' }, 'li-c'),
+    h('li', { key: 'd' }, 'li-d')
 ])
 
 setTimeout(() => {
+    console.log('two seconds later...');
     const nextNode = h('ul', null, [
         h('li', { key: 'a' }, 'li-a'),
-        h('li', { key: 'b' }, 'li-b')
+        h('li', { key: 'd' }, 'li-d')
     ])
     render(nextNode, document.querySelector('#app'));
 }, 2000)
