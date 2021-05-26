@@ -1,6 +1,6 @@
-# React的diff算法
+# 根据最大索引值的diff算法
 
-## 根据遍历旧 children 中找到最大索引值（lastIndex变量）。如果在遍历的过程中发现存在索引值比最大索引值小的节点，意味着该节点需要被移动
+## 根据遍历旧 children 中找到最大索引值（lastIndex变量），如果在遍历的过程中发现存在索引值比最大索引值小的节点，意味着该节点需要被移动
 
 ![React的diff算法](https://github.com/LcLichong/vue-design/blob/master/static/key_diff.svg)
 
