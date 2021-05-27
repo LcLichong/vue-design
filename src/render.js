@@ -2,7 +2,7 @@
  * @Author: LcLichong 
  * @Date: 2021-05-23 01:41:26 
  * @Last Modified by: LcLichong
- * @Last Modified time: 2021-05-26 16:19:58
+ * @Last Modified time: 2021-05-27 16:40:43
  */
 
 import { VNodeFlags, ChildrenFlags } from './flags'
@@ -367,7 +367,10 @@ function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildre
                     // patchByLastIndex(prevChildren, nextChildren, container);
 
                     // 双端比较的diff
-                    patchByBothEnds(prevChildren, nextChildren, container);
+                    // patchByBothEnds(prevChildren, nextChildren, container);
+
+                    // vue3 的 diff
+                    patchByInferno(prevChildren, nextChildren, container);
                     break;
             }
             break;
@@ -593,12 +596,48 @@ function patchByBothEnds(prevChildren, nextChildren, container) {
     if (oldEndIdx < oldStartIdx) {
         // 添加新节点
         for (let i = newStartIdx; i <= newEndIdx; i++) {
-            mount(nextChildren[i], container, false, oldStartVNode.el);
+            mount(nextChildren[i], container, false, oldStartVNode ? oldStartVNode.el : null);
         }
     } else if (newEndIdx < newStartIdx) {
         // 移除节点
         for (let i = oldStartIdx; i <= oldEndIdx; i++) {
             container.removeChild(prevChildren[i].el);
         }
+    }
+}
+
+function patchByInferno(prevChildren, nextChildren, container) {
+    // vue3 的 diff，借鉴于 ivi 和 inferno
+
+    // 更新相同的前缀节点
+    // j 为指向新旧 children 中第一个节点的索引
+    let j = 0;
+    let prevVNode = prevChildren[j];
+    let nextVNode = nextChildren[j];
+    // while 循环向后遍历，直到遇到拥有不同 key 值的节点为止
+    while (prevVNode.key === nextVNode.key) {
+        // 调用 patch 函数更新
+        patch(prevVNode, nextVNode, container);
+        j++;
+        prevVNode = prevChildren[j];
+        nextVNode = nextChildren[j];
+    }
+    // 更新相同的后缀节点
+
+    // 指向旧 children 最后一个节点的索引
+    let prevEnd = prevChildren.length - 1;
+    // 指向新 children 最后一个节点的索引
+    let nextEnd = nextChildren.length - 1;
+
+    prevVNode = prevChildren[prevEnd];
+    nextVNode = nextChildren[nextEnd];
+    // while 循环向前遍历，直到遇到拥有不同 key 值的节点为止
+    while (prevVNode.key === nextVNode.key) {
+        // 调用 patch 函数更新
+        patch(prevVNode, nextVNode, container);
+        prevEnd--;
+        nextEnd--;
+        prevVNode = prevChildren[prevEnd];
+        nextVNode = nextChildren[nextEnd];
     }
 }
